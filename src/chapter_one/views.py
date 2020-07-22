@@ -47,9 +47,10 @@ def _get_recipient_by_id(recipients_json: List[Dict[str, Any]], pk: Any) -> Opti
     except ValueError:
         return
 
-    for idx, r_j in enumerate(recipients_json, 1):
-        if idx == pk:
-            return r_j
+    try:
+        return recipients_json[pk-1]
+    except IndexError:
+        return
 
 
 @cache_page(settings.CHAPTER_ONE['CACHE_TIMEOUT'])

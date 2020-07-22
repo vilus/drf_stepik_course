@@ -23,7 +23,7 @@ def fetch_json(url: str, timeout: int) -> Union[Dict[str, Any], List[Dict[str, A
         raise exceptions.APIException(detail=e.response.reason, code=e.response.status_code)
     except utils.Timeout:
         raise RequestTimeoutError()
-    except (utils.RequestException, Exception):
+    except Exception:
         raise exceptions.APIException()
 
 

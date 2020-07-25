@@ -1,10 +1,12 @@
 from typing import Any, Callable, Dict, Optional, List, Union
 
 from django.http import QueryDict
+from django.core.cache import cache
+
 from rest_framework import exceptions
 from rest_framework import status
 
-from chapter_one import utils
+from . import utils
 
 
 class RequestTimeoutError(exceptions.APIException):
@@ -13,12 +15,13 @@ class RequestTimeoutError(exceptions.APIException):
     default_code = 'request_timeout_error'
 
 
-def fetch_json(url: str, timeout: int) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
-    """
-    TODO
-    """
+def fetch_json(url: str, timeout: int, cache_timeout: int) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
+    cached = cache.get(url)
+    if cached:
+        return cached
+
     try:
-        return utils.fetch_json(url, timeout)
+        res = utils.fetch_json(url, timeout)
     except utils.HTTPError as e:
         raise exceptions.APIException(detail=e.response.reason, code=e.response.status_code)
     except utils.Timeout:
@@ -26,19 +29,16 @@ def fetch_json(url: str, timeout: int) -> Union[Dict[str, Any], List[Dict[str, A
     except Exception:
         raise exceptions.APIException()
 
+    cache.set(url, res, cache_timeout)
+    return res
+
 
 def get_min_from_query_dict_by_key(query_dict: QueryDict, key: str) -> int:
-    """
-    TODO
-    """
     return min(int(i) for i in query_dict.getlist(key))
 
 
 def get_query_params(query_params: QueryDict,
                      param_getter_map: Dict[str, Callable[[QueryDict], Any]]) -> Dict[str, Any]:
-    """
-    TODO:
-    """
     unexpected_params = set(query_params.keys()) - set(param_getter_map.keys())
     if unexpected_params:
         raise exceptions.ValidationError(detail=f'unexpected params: {unexpected_params}')
@@ -63,9 +63,6 @@ def get_filter_predicates(
         query_params: Dict[str, Any],
         predicates_map: Dict[str, Callable[[Dict[str, Any], Any], bool]]
 ) -> List[Callable[[Dict[str, Any]], bool]]:
-    """
-    TODO
-    """
     res = []
     for p_name, p_value in query_params.items():
         res.append(
@@ -76,9 +73,6 @@ def get_filter_predicates(
 
 def filter_item(item: Dict[str, Any],
                 predicates: Optional[List[Callable[[Dict[str, Any]], bool]]] = None) -> bool:
-    """
-    TODO
-    """
     if predicates is None:
         return True
 

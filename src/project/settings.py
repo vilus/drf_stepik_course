@@ -125,6 +125,6 @@ STATIC_URL = '/static/'
 CHAPTER_ONE = {
     'RECIPIENTS_URL': 'https://stepik.org/media/attachments/course/73594/recipients.json',
     'DATASET_URL': 'https://stepik.org/media/attachments/course/73594/foodboxes.json',
-    'EXTERNAL_REQUEST_TIMEOUT': 4,
-    'CACHE_TIMEOUT': 60*60,
+    'EXTERNAL_REQUEST_TIMEOUT_SEC': 4,
+    'CACHE_TIMEOUT_SEC': 60*60,
 }
